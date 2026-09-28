@@ -15,7 +15,8 @@ type Registry map[string]Factory
 
 func DefaultRegistry(log *slog.Logger) Registry {
 	return Registry{
-		"log": newLog(log),
+		"log":  newLog(log),
+		"http": newHTTP(log),
 	}
 }
 

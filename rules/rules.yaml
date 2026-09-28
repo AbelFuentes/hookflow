@@ -6,3 +6,9 @@ rules:
     do:
       - type: log
         message: "buenas noches"
+      - type: http
+        url: http://localhost:9999
+        headers:
+          X-Source: hookflow
+        retries: 3
+        timeout: 5s
