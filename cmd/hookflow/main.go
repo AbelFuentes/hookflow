@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/AbelFuentes/hookflow/internal/action"
+	"github.com/AbelFuentes/hookflow/internal/config"
 	"github.com/AbelFuentes/hookflow/internal/engine"
 	"github.com/AbelFuentes/hookflow/internal/server"
 )
@@ -28,9 +30,15 @@ func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
+	rules, err := config.Load(getenv("HOOKFLOW_RULES", "rules/rules.yaml"), action.DefaultRegistry(log))
+	if err != nil {
+		return err
+	}
+	log.Info("rules loaded", "count", len(rules))
+
 	srv := &http.Server{
 		Addr:              addr,
-		Handler:           server.New(engine.New(log), log),
+		Handler:           server.New(engine.New(log, rules...), log),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      30 * time.Second,

@@ -1,0 +1,8 @@
+rules:
+  - id: good-night
+    on:
+      source: alexa
+      name: GoodNight
+    do:
+      - type: log
+        message: "buenas noches"
