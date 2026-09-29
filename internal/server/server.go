@@ -22,12 +22,21 @@ type eventRequest struct {
 	Payload map[string]any `json:"payload"`
 }
 
-func New(h EventHandler, log *slog.Logger) http.Handler {
+// Route allows mounting extra handlers (e.g. POST /alexa).
+type Route struct {
+	Pattern string
+	Handler http.Handler
+}
+
+func New(h EventHandler, log *slog.Logger, routes ...Route) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 	mux.HandleFunc("POST /events", postEvent(h, log))
+	for _, r := range routes {
+		mux.Handle(r.Pattern, r.Handler)
+	}
 	return mux
 }
 

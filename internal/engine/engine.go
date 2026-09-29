@@ -20,17 +20,21 @@ func New(log *slog.Logger, rules ...Rule) *Engine {
 // A failure does not stop the other actions; errors are aggregated.
 func (en *Engine) Handle(ctx context.Context, e Event) error {
 	var errs []error
+	matched := 0
 	for _, r := range en.rules {
 		if r.Source != e.Source || r.Name != e.Name {
 			continue
 		}
-
+		matched++
 		en.log.InfoContext(ctx, "rule matched", "rule", r.ID, "event", e.Name)
 		for _, a := range r.Actions {
 			if err := a.Run(ctx, e); err != nil {
 				errs = append(errs, fmt.Errorf("rule %s: %w", r.ID, err))
 			}
 		}
+	}
+	if matched == 0 {
+		en.log.WarnContext(ctx, "no rule matched", "source", e.Source, "event", e.Name)
 	}
 	return errors.Join(errs...)
 }

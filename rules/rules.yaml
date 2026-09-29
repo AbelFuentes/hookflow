@@ -2,7 +2,7 @@ rules:
   - id: good-night
     on:
       source: alexa
-      name: GoodNight
+      name: GoodNightIntent
     do:
       - type: log
         message: "buenas noches"

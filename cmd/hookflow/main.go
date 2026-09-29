@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/AbelFuentes/hookflow/internal/action"
+	"github.com/AbelFuentes/hookflow/internal/alexa"
 	"github.com/AbelFuentes/hookflow/internal/config"
 	"github.com/AbelFuentes/hookflow/internal/engine"
 	"github.com/AbelFuentes/hookflow/internal/server"
@@ -36,9 +37,20 @@ func run() error {
 	}
 	log.Info("rules loaded", "count", len(rules))
 
+	eng := engine.New(log, rules...)
+
+	var routes []server.Route
+	if skillID := os.Getenv("HOOKFLOW_ALEXA_SKILL_ID"); skillID != "" {
+		routes = append(routes, server.Route{
+			Pattern: "POST /alexa",
+			Handler: alexa.NewHandler(skillID, alexa.NewVerifier(), eng, log),
+		})
+		log.Info("alexa endpoint enabled", "path", "/alexa")
+	}
+
 	srv := &http.Server{
 		Addr:              addr,
-		Handler:           server.New(engine.New(log, rules...), log),
+		Handler:           server.Logging(log, server.New(eng, log, routes...)),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      30 * time.Second,

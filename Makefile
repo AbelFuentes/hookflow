@@ -1,3 +1,8 @@
+ifneq (,$(wildcard .env))
+include .env
+export
+endif
+
 .PHONY: test lint run
 test:
 	go test -race -cover -timeout 30s ./...
